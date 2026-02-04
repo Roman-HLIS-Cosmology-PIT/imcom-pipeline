@@ -1,7 +1,27 @@
 from ceci import PipelineStage
-from scm_pipeline import ASDFFile, TextFile, Directory
-from .types import TextFile, YamlFile
+from scm_pipeline import ASDFFile, TextFile, Directory, JsonFile
+from .utils import make_imcom_config 
 
+class ConfigConversion(PipelineStage):
+    """
+    This pipeline element is for converting ceci-style config yaml files to pyimcom-style config files.
+    """
+
+    name = "ConfigConversion"
+    inputs = []
+    outputs = [("imcom_config", JsonFile)]
+    config_options = {}
+
+    def run(self):
+        # Retrieve configuration:
+        my_config = self.config
+        print("Here is my configuration :", my_config)
+        
+        make_imcom_config(my_config, "imcom_config.json")
+
+        filename = self.get_output("imcom_config.json")
+        print(f" ConfigConversion Stage wrote imcom Config to {filename}")
+        
 
 class Destripe(PipelineStage):
     """
