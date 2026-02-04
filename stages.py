@@ -78,7 +78,29 @@ class PSFSplit(PipelineStage):
         open(filename, "w").write(blah)
 
 
+Class BuildLayers(PipelineStage):
+    """
+    Builds image layers from SCA image file
+    """
 
+    Name = "BuildLayers"
+    inputs = [("SCA_Image"),DataFile)]
+    outputs = [("layers",)]
+    config_options =
+
+    def run(self):
+        # Retrieve configuration:
+        my_config = self.config
+        print("Here is my configuration :", my_config)
+
+       
+        path_to_images = self.get_input("SCA_Image")
+        print(f" Destripe Stage reading images from {path_to_images} according to manifest file {manifest_file}")
+        blah = process(filename)
+
+        path_to_layers = self.get_output("layers")
+        print(f" Buildlayers writing to {filename}")
+        open(filename, "something").write(blah)
 
 if __name__ == "__main__":
     cls = PipelineStage.main()
