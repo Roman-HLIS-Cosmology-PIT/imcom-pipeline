@@ -3,32 +3,10 @@
 global:
     obs_file: "/users/PCON0003/cond0007/imcom/pyimcom/anlsim/Roman_WAS_obseq_11_1_23.fits"
     indata: ["/fs/scratch/PCON0003/cond0007/fall2025/sim/L2", "L2_2506"]
-    ctr: [9.55, -44.1]  # Center of mosaic field in RA/Dec
-    lonpole: 180.0
-    outsize: [72, 34, 0.049019607843137254]
-    block: 12
     filter: 2
-    lakernel: "Cholesky"
-    kappac: [5e-4]
     in_psf: ["/fs/scratch/PCON0003/cond0007/fall2025/psf", "L2_2506", 6]
-    padsides: "all"
-    outmaps: "USTN"
-    out: "/fs/scratch/PCON0003/cond0007/fall2025/coadd_H2/testmosaic_H2"
-    inpad: 0.80
-    n_pix_psf: 36
-    fade: 1
-    pad: 1
-    n_out: 1
-    out_psf: "GAUSSIAN"
-    extra_smooth: 0.9265328730414752
-    tempfile: "/fs/scratch/PCON0003/cond0007/tmp/pyimcomrun_2X"
-    inlayer_cache: "/fs/scratch/PCON0003/cond0007/fall2025/H-cache2/r1"
     psf_split: [5.25, 8.75, 0.01]
-    ds_model: ["constant", 4088]
-    ds_obsfile: "/fs/scratch/PCON0003/cond0007/temp_kl/t_"
-    ds_outputs: ["/fs/scratch/PCON0003/klaliotis/imdestripe/mosaic_test_v3/", "_ds_out.txt"]
-    cg_model: ["PR", 12, 1e-3]
-    ds_cost: ["quadratic", 0, 0]
+
     extra_input: [
         "truth,0.004906087669824225",
         "gsstar14",
@@ -44,6 +22,55 @@ global:
         "noise,Rz4PbrS2C2",
         "noise,Rz4PrS2C3",
         "noise,Rz4PrS2C4"]
+
+    ctr: [9.55, -44.1]  # Center of mosaic field in RA/Dec
+    lonpole: 180.0
+    outsize: [72, 34, 0.049019607843137254]
+    block: 12
+
+    fade: 1
+    pad: 1
+    padsides: "all"
+    stop: 0
+
+    outmaps: "USTN"
+    out: "/fs/scratch/PCON0003/cond0007/fall2025/coadd_H2/testmosaic_H2"
+    tempfile: "/fs/scratch/PCON0003/cond0007/tmp/pyimcomrun_2X"
+    inlayer_cache: "/fs/scratch/PCON0003/cond0007/fall2025/H-cache2/r1"
+
+    n_out: 1
+    out_psf: "GAUSSIAN"
+    extra_smooth: 0.9265328730414752
+    outpsf_extra: []
+    sigmatarget_extra: []
+
+    n_pix_psf: 36
+    psf_circ: false
+    psf_norm: false
+    amp_penalty: (0.0, 0.0)
+    flat_penalty: 0.0
+    psf_interp: "D5512"
+    inpad: 0.80
+    
+    lakernel: "Cholesky"
+    linear_algebra: "Iterative"
+    iter_rtol: 1.5e-3
+    iter_max: 30
+    no_qlt_ctrl: false
+
+    ds_model: ["constant", 4088]
+    ds_obsfile: "/fs/scratch/PCON0003/cond0007/temp_kl/t_"
+    ds_outputs: ["/fs/scratch/PCON0003/klaliotis/imdestripe/mosaic_test_v3/", "_ds_out.txt"]
+    cg_model: ["PR", 12, 1e-3]
+    ds_cost: ["quadratic", 0, 0]
+    
+    kappac: [5e-4]
+    ucmin: 1e-6
+    smax: 0.5
+
+    tileschm: "Not_specified"
+    rerun: "Not_specified"
+    mosaic: -1
     
     # This is read by many stages that read complete
     # catalog data, and tells them how many rows to read
@@ -63,9 +90,11 @@ global:
 Destripe:
     ds_model: ["constant", 4088]
     ds_obsfile: "/fs/scratch/PCON0003/cond0007/temp_kl/t_"
-    ds_outputs: ["/fs/scratch/PCON0003/klaliotis/imdestripe/mosaic_test_v3/", "_ds_out.txt"]
+    ds_outpath: ["/fs/scratch/PCON0003/klaliotis/imdestripe/mosaic_test_v3/", "_ds_out.txt"]
     cg_model: ["PR", 12, 1e-3]
     ds_cost: ["quadratic", 0, 0]
+    ds_restart: false
+    gaindir: false
     
 PSFSplit:
     psf_split: [5.25, 8.75, 0.01]
