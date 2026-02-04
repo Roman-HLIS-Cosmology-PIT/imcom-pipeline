@@ -1,6 +1,29 @@
 # Values in this section are accessible to all the different stages.
 # They can be overridden by individual stages though.
 global:
+    obs_file: "/users/PCON0003/cond0007/imcom/pyimcom/anlsim/Roman_WAS_obseq_11_1_23.fits"
+    indata: ["/fs/scratch/PCON0003/cond0007/fall2025/sim/L2", "L2_2506"]
+    ctr: [9.55, -44.1]  # Center of mosaic field in RA/Dec
+    lonpole: 180.0
+    outsize: [72, 34, 0.049019607843137254]
+    block: 12
+    filter: 2
+    lakernel: "Cholesky"
+    kappac: [5e-4]
+    in_psf: ["/fs/scratch/PCON0003/cond0007/fall2025/psf", "L2_2506", 6]
+    padsides: "all"
+    outmaps: "USTN"
+    out: "/fs/scratch/PCON0003/cond0007/fall2025/coadd_H2/testmosaic_H2"
+    inpad: 0.80
+    n_pix_psf: 36
+    fade: 1
+    pad: 1
+    n_out: 1
+    out_psf: "GAUSSIAN"
+    extra_smooth: 0.9265328730414752
+    tempfile: "/fs/scratch/PCON0003/cond0007/tmp/pyimcomrun_2X"
+    inlayer_cache: "/fs/scratch/PCON0003/cond0007/fall2025/H-cache2/r1"
+    
     # This is read by many stages that read complete
     # catalog data, and tells them how many rows to read
     # at once
@@ -17,17 +40,31 @@ global:
 
 
 Destripe:
-    DS_model: ["constant", 4088]
-    DS_obsfile: "/fs/scratch/PCON0003/cond0007/temp_kl/t_"
-    DS_outputs: ["/fs/scratch/PCON0003/klaliotis/imdestripe/mosaic_test_v3/", "_ds_out.txt"]
-    CG_model: ["PR", 12, 1e-3]
-    DS_cost: ["quadratic", 0, 0]
+    ds_model: ["constant", 4088]
+    ds_obsfile: "/fs/scratch/PCON0003/cond0007/temp_kl/t_"
+    ds_outputs: ["/fs/scratch/PCON0003/klaliotis/imdestripe/mosaic_test_v3/", "_ds_out.txt"]
+    cg_model: ["PR", 12, 1e-3]
+    ds_cost: ["quadratic", 0, 0]
     
 PSFSplit:
-    option: setting
+    psf_split: [5.25, 8.75, 0.01]
 
 BuildLayers:
-    option: setting
+    extra_input: [
+        "truth,0.004906087669824225",
+        "gsstar14",
+        "nstar14,2e5,86,3",
+        "gsext14,seed=100",
+        "gsext14,seed=100,shear=0.02:0",
+        "gsext14,seed=100,shear=0:0.02",
+        "gsext14,seed=100,shear=-0.02:0",
+        "gsext14,seed=100,shear=0:-0.02",
+        "1fnoise9",
+        "whitenoise10",
+        "noise,Rz4PbrS2C1",
+        "noise,Rz4PbrS2C2",
+        "noise,Rz4PrS2C3",
+        "noise,Rz4PrS2C4"]
     
 ImcomInitial:
     option: setting
