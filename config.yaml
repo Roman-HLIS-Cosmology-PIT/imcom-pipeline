@@ -17,7 +17,11 @@ global:
 
 
 Destripe:
-    option: setting
+    DS_model: ["constant", 4088]
+    DS_obsfile: "/fs/scratch/PCON0003/cond0007/temp_kl/t_"
+    DS_outputs: ["/fs/scratch/PCON0003/klaliotis/imdestripe/mosaic_test_v3/", "_ds_out.txt"]
+    CG_model: ["PR", 12, 1e-3]
+    DS_cost: ["quadratic", 0, 0]
     
 PSFSplit:
     option: setting
