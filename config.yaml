@@ -1,0 +1,38 @@
+# Values in this section are accessible to all the different stages.
+# They can be overridden by individual stages though.
+global:
+    # This is read by many stages that read complete
+    # catalog data, and tells them how many rows to read
+    # at once
+    
+
+# Here's the list of stages we are using:
+# Destripe
+# PSFSplit
+# BuildLayers
+# ImcomInitial
+# Imsubtract
+# ImcomFinal
+# GenerateOutputs
+
+
+Destripe:
+    option: setting
+    
+PSFSplit:
+    option: setting
+
+BuildLayers:
+    option: setting
+    
+ImcomInitial:
+    option: setting
+
+Imsubtract:
+    option: setting
+
+ImcomFinal:
+    option: setting
+
+GenerateOutputs:
+    option: setting
