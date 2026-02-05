@@ -78,7 +78,7 @@ class PSFSplit(PipelineStage):
         open(filename, "w").write(blah)
 
 
-Class BuildLayers(PipelineStage):
+class BuildLayers(PipelineStage):
     """
     Builds image layers from an SCA image
     """
