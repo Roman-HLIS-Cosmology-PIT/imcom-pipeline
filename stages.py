@@ -80,13 +80,13 @@ class PSFSplit(PipelineStage):
 
 Class BuildLayers(PipelineStage):
     """
-    Builds image layers from SCA image file
+    Builds image layers from an SCA image
     """
 
-    Name = "BuildLayers"
-    inputs = [("SCA_Image"),DataFile)]
-    outputs = [("layers",)]
-    config_options =
+    name = "BuildLayers"
+    inputs = [("image",Directory)]
+    outputs = [("layers",Directory)]
+    config_options = {} # MG Unsure
 
     def run(self):
         # Retrieve configuration:
