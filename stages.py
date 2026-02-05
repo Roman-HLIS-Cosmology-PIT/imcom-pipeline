@@ -1,4 +1,4 @@
-from ceci import PipelineStage
+from scm_pipeline import PipelineStage
 from scm_pipeline import ASDFFile, TextFile, Directory, JsonFile
 from .utils import make_imcom_config 
 
