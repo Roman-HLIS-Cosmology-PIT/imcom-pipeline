@@ -1,62 +1,102 @@
-from ceci import PipelineStage
-from scm_pipeline import ASDFFile, TextFile, Directory
+from pyimcom import config
+# TESTING
+import sys
+import yaml
 
-class Destripe(PipelineStage):
+def make_imcom_config(config_yaml, outname):
     """
-    This pipeline element is for removing noise stripes from mosaic images.
-    """
-
-    name = "Destripe"
-    # Inputs to this stage. Format: List of (name, datatype) (see: scm_pipeline/data_types)
-    inputs = [("images", Directory), ("manifest_file", TextFile)]
-    # Outputs from this stage. Format: List of (name, datatype)
-    outputs = [("destriped_images", Directory), ("manifest_file", TextFile)]  # KL Maybe we want to update the manifest file to exclude destriping anomaly images from coadds?
-    # Config options -- these should match the config options for this stage in config.yaml. Format: {name: dtype}
-    config_options = {"something": float}
-
-    def run(self):
-        # Retrieve configuration:
-        my_config = self.config
-        print("Here is my configuration :", my_config)
-
-       
-        path_to_images = self.get_input("images")
-        manifest_file = self.get_input("manifest_file")
-        print(f" Destripe Stage reading images from {path_to_images} according to manifest file {manifest_file}")
-        blah = process(filename)
-
-        path_to_images = self.get_output("destriped_images")
-        manifest_file = self.get_output("manifest_file")
-        print(f" Destripe Stage writing destriped images to to {path_to_images}")
-        print(f"Manifest file {manifest_file} updated.")
-        open(filename, "w").write(blah)
-
-class PSFSplit(PipelineStage):
-    """
-    This pipeline element is for selecting stars for psf fitting
+    This function takes the ceci-style config yaml file from this pipeline repo and generates a 
+    pyimcom-style config file for imcom.
+    
+    :param config_yaml: The ceci-style config yaml file
+    :param output: The output pyimcom-style config file
     """
 
-    name = "SelectionStage"
-    inputs = [("destriped_images", Directory)]
-    outputs = [("star_catalog", ParquetFile)]
-    config_options = {"magnitude_cut": float}
+    config_dict = {
+        # Section I : Input Files
+        "OBSFILE": config_yaml["obs_file"],
+        "INDATA": config_yaml["indata"],
+        "FILTER": config_yaml["filter"],
+        "INPSF":config_yaml["in_psf"],
+        "PSFSPLIT": config_yaml["psf_split"],
 
-    def run(self):
-        # Retrieve configuration:
-        my_config = self.config
-        print("Here is my configuration :", my_config)
+        # Section II : Masks and Layers
+        # "PMASK": config_yaml["p_mask"],
+        # "CMASK": config_yaml["c_mask"],
+        "EXTRAINPUT": config_yaml["extra_input"],
+        # "LABNOISETHRESHOLD": config_yaml["lab_noise_threshold"],
 
-       
-        filename = self.get_input("object_catalog")
-        print(f" SelectionStage reading from {filename}")
-        blah = process(filename)
+        # Section III: Area to Coadd
+        "CTR": config_yaml["ctr"],
+        "LONPOLE": config_yaml["lonpole"],
+        "BLOCK": config_yaml["block"],
+        "OUTSIZE": config_yaml["outsize"],
 
-        filename = self.get_output("star_catalog")
-        print(f" SelectionStage writing to {filename}")
-        open(filename, "w").write(blah)
+        # Section IV: Postage Stamp Parameters
+        "FADE": config_yaml["fade"],
+        "PAD": config_yaml["pad"],
+        "PADSIDES": config_yaml["padsides"],
+        "STOP": config_yaml["stop"],
 
+        # Section V: Output Settings
+        "OUTMAPS": config_yaml["outmaps"],
+        "OUT": config_yaml["out"],
+        "TEMPFILE": config_yaml["tempfile"],
+        "INLAYERCACHE": config_yaml["inlayer_cache"],
 
+        # Section VI: Target Output PSF
+        "NOUT": config_yaml["n_out"],
+        "OUTPSF": config_yaml["out_psf"],
+        "EXTRASMOOTH": config_yaml["extra_smooth"],
 
+        # Section VII: Building Linear Systems
+        "NPIXPSF": config_yaml["n_pix_psf"],
+        "PSFCIRC": config_yaml["psf_circ"],
+        "PSFNORM": config_yaml["psf_norm"],
+        "AMPPENALTY": config_yaml["amp_penalty"],
+        "FLATPEN": config_yaml["flat_penalty"],
+        "PSFINTERP": config_yaml["psf_interp"],
+        "INPAD": config_yaml["inpad"],
 
-if __name__ == "__main__":
-    cls = PipelineStage.main()
+        # Section VIII : Solving Linear Systems
+        "LAKERNEL": config_yaml["la_kernel"],
+
+        # Section IX: Destriping Params
+        "DSMODEL": config_yaml["ds_model"],
+        "DSOUT": config_yaml["ds_outpath"],
+        "CGMODEL": config_yaml["cg_model"],
+        "DSCOST": config_yaml["ds_cost"],
+        "DSOBSFILE": config_yaml["ds_obsfile"],
+        "DSRESTART": config_yaml["ds_restart"],
+        "GAINDIR": config_yaml["gain_dir"],
+
+        "KAPPAC": config_yaml["kappac"],
+        "UCMIN": config_yaml["uctarget"],
+        "SMAX": config_yaml["sigmamax"],
+
+        "TILESCHM": config_yaml["tileschm"],
+        "RERUN": config_yaml["rerun"],
+        "MOSAICID": config_yaml["mosaic"]
+
+        }
+    
+
+    if config_yaml["n_out"] > 1:
+        for i in range(config_yaml["n_out"]+1):
+            if i==0: continue
+            config_dict[f"OUTPSF{i+1}"] = config_yaml["outpsf_extra"][i]
+            config_dict[f"EXTRASMOOTH{i+1}"] = config_yaml["sigmatarget_extra"][i]
+        
+    if config_yaml["linear_algebra"] == "Iterative":
+        config_dict["ITERRTOL"] = config_yaml["iter_rtol"]
+        config_dict["ITERMAX"] = config_yaml["max_iter"]
+    elif config_yaml["linear_algebra"] == "Empirical":
+        config_dict["EMPIRNQC"] = config_yaml["no_qlt_ctrl"]
+
+    pyimcom_config = config.Config._from_dict(cfg_dict=config_dict)
+    pyimcom_config.to_file(fname = outname)
+
+with open(sys.argv[1], 'r') as stream:
+    yaml_loaded = yaml.safe_load(stream)
+make_imcom_config(yaml_loaded, 'imcom_config.json')
+
