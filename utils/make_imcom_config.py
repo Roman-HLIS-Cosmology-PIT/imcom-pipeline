@@ -1,7 +1,5 @@
 from pyimcom import config
-# TESTING
-import sys
-import yaml
+import json
 
 def make_imcom_config(config_yaml, outname):
     """
@@ -59,11 +57,11 @@ def make_imcom_config(config_yaml, outname):
         "INPAD": config_yaml["inpad"],
 
         # Section VIII : Solving Linear Systems
-        "LAKERNEL": config_yaml["la_kernel"],
+        "LAKERNEL": config_yaml["lakernel"],
 
         # Section IX: Destriping Params
         "DSMODEL": config_yaml["ds_model"],
-        "DSOUT": config_yaml["ds_outpath"],
+        "DSOUT": config_yaml["ds_outputs"],
         "CGMODEL": config_yaml["cg_model"],
         "DSCOST": config_yaml["ds_cost"],
         "DSOBSFILE": config_yaml["ds_obsfile"],
@@ -71,8 +69,8 @@ def make_imcom_config(config_yaml, outname):
         "GAINDIR": config_yaml["gain_dir"],
 
         "KAPPAC": config_yaml["kappac"],
-        "UCMIN": config_yaml["uctarget"],
-        "SMAX": config_yaml["sigmamax"],
+        "UCMIN": config_yaml["ucmin"],
+        "SMAX": config_yaml["smax"],
 
         "TILESCHM": config_yaml["tileschm"],
         "RERUN": config_yaml["rerun"],
@@ -89,14 +87,10 @@ def make_imcom_config(config_yaml, outname):
         
     if config_yaml["linear_algebra"] == "Iterative":
         config_dict["ITERRTOL"] = config_yaml["iter_rtol"]
-        config_dict["ITERMAX"] = config_yaml["max_iter"]
+        config_dict["ITERMAX"] = config_yaml["iter_max"]
     elif config_yaml["linear_algebra"] == "Empirical":
         config_dict["EMPIRNQC"] = config_yaml["no_qlt_ctrl"]
 
-    pyimcom_config = config.Config._from_dict(cfg_dict=config_dict)
-    pyimcom_config.to_file(fname = outname)
-
-with open(sys.argv[1], 'r') as stream:
-    yaml_loaded = yaml.safe_load(stream)
-make_imcom_config(yaml_loaded, 'imcom_config.json')
+    cfg = config.Config(cfg_file=json.dumps(config_dict))
+    cfg.to_file(fname=outname)
 

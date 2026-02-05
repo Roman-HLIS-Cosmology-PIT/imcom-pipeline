@@ -63,6 +63,8 @@ global:
     ds_outputs: ["/fs/scratch/PCON0003/klaliotis/imdestripe/mosaic_test_v3/", "_ds_out.txt"]
     cg_model: ["PR", 12, 1e-3]
     ds_cost: ["quadratic", 0, 0]
+    ds_restart: false
+    gain_dir: false
     
     kappac: [5e-4]
     ucmin: 1e-6

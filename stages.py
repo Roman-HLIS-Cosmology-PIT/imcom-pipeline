@@ -8,7 +8,6 @@ from roman_hlis_l2_driver.outliers.outlier_flagging import OutlierMap
 class ConfigConversion(PipelineStage):
     """
     This pipeline element is for converting ceci-style config yaml files to pyimcom-style config files.
-    To do: Test
     """
 
     name = "ConfigConversion"
@@ -21,7 +20,7 @@ class ConfigConversion(PipelineStage):
         my_config = self.config
         print("Here is my configuration :", my_config)
         
-        make_imcom_config(my_config, "imcom_config.json")
+        make_imcom_config(my_config['global'], "imcom_config.json")
 
         filename = self.get_output("imcom_config.json")
         print(f"ConfigConversion Stage wrote imcom Config to {filename}")
