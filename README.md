@@ -9,3 +9,5 @@ Stages in this pipeline section:
 5. Imsubtract
 6. ImcomFinal
 7. GenerateOutputs
+
+[Summary of what we did during hack week!](https://docs.google.com/document/d/1gA-rVOpXHlCC3aoyqxmQJMVyxrRuwvHE6SP0aSnH5rw/edit?tab=t.0)
