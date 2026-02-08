@@ -1,5 +1,5 @@
 from scm_pipeline import PipelineStage
-from scm_pipeline.data_types import ASDFFile, TextFile, Directory, JsonFile # KL We need to add JsonFile
+from scm_pipeline.data_types import ASDFFile, TextFile, Directory, JSONFile # KL We need to add JSONFile
 from .utils import make_imcom_config 
 import sys
 from roman_hlis_l2_driver.destripe_interface.destripe import destripe_all_layers
@@ -12,7 +12,7 @@ class ConfigConversion(PipelineStage):
 
     name = "ConfigConversion"
     inputs = []
-    outputs = [("imcom_config", JsonFile)]
+    outputs = [("imcom_config", JSONFile)]
     config_options = {}
 
     def run(self):
@@ -33,7 +33,7 @@ class Destripe(PipelineStage):
     """
 
     name = "Destripe"
-    inputs = [("manifest_file", TextFile), ("imcom_config", JsonFile)]
+    inputs = [("manifest_file", TextFile), ("imcom_config", JSONFile)]
     outputs = [("destriped_dir", Directory), ("manifest_file", TextFile)]  # KL Maybe we want to update the manifest file to exclude destriping anomaly images from coadds?
     # Config options -- these should match the config options for this stage in config.yaml. Format: {"name": dtype}
     config_options = {}
@@ -67,8 +67,8 @@ class PSFSplit(PipelineStage):
     """
 
     name = "PSFSplit"
-    inputs = [("destriped_dir", Directory), ("imcom_config", JsonFile), ("manifest_file", TextFile)]
-    outputs = [("image_dir", Directory), ("manifest_file", TextFile), ("imcom_config", JsonFile)] 
+    inputs = [("destriped_dir", Directory), ("imcom_config", JSONFile), ("manifest_file", TextFile)]
+    outputs = [("image_dir", Directory), ("manifest_file", TextFile), ("imcom_config", JSONFile)] 
     config_options = {}
 
     def run(self):
@@ -92,8 +92,8 @@ class BuildLayers(PipelineStage):
     """
 
     name = "BuildLayers"
-    inputs = [("image_dir",Directory), ("imcom_config", JsonFile), ("manifest_file", TextFile)]
-    outputs = [("imcom_inputs_dir",Directory), ("manifest_file", TextFile), ("imcom_config", JsonFile)]
+    inputs = [("image_dir",Directory), ("imcom_config", JSONFile), ("manifest_file", TextFile)]
+    outputs = [("imcom_inputs_dir",Directory), ("manifest_file", TextFile), ("imcom_config", JSONFile)]
     config_options = {} # MG Unsure
 
     def run(self):
@@ -116,8 +116,8 @@ class ImcomInitial(PipelineStage):
     - Implement the actual IMCOM processing functionality
     """
     name = "ImcomInitial"
-    inputs = [("imcom_inputs_dir",Directory), ("imcom_config", JsonFile), ("manifest_file", TextFile)]
-    outputs = [("imcom_outputs_dir",Directory), ("manifest_file", TextFile), ("imcom_config", JsonFile)]
+    inputs = [("imcom_inputs_dir",Directory), ("imcom_config", JSONFile), ("manifest_file", TextFile)]
+    outputs = [("imcom_outputs_dir",Directory), ("manifest_file", TextFile), ("imcom_config", JSONFile)]
     config_options = {} 
 
     def run(self):
@@ -145,8 +145,8 @@ class ImSubtract(PipelineStage):
     """
 
     name = "imsubtract"
-    inputs = [("imcom_outputs_dir", Directory), ("imcom_config", JsonFile), ("manifest_file", TextFile)]
-    outputs = [("imcom_inputs_dir_2",Directory), ("imcom_config", JsonFile), ("manifest_file", TextFile)]
+    inputs = [("imcom_outputs_dir", Directory), ("imcom_config", JSONFile), ("manifest_file", TextFile)]
+    outputs = [("imcom_inputs_dir_2",Directory), ("imcom_config", JSONFile), ("manifest_file", TextFile)]
     config_options = {} 
 
     def run(self):
@@ -170,8 +170,8 @@ class ImcomFinal(PipelineStage):
     """
 
     name = "ImcomFinal"
-    inputs = [("imcom_inputs_dir_2",Directory), ("imcom_config", JsonFile), ("manifest_file", TextFile)]
-    outputs = [("final_imcom_outputs_dir",Directory), ("imcom_config", JsonFile), ("manifest_file", TextFile)]
+    inputs = [("imcom_inputs_dir_2",Directory), ("imcom_config", JSONFile), ("manifest_file", TextFile)]
+    outputs = [("final_imcom_outputs_dir",Directory), ("imcom_config", JSONFile), ("manifest_file", TextFile)]
     config_options = {} 
 
     def run(self):
@@ -196,7 +196,7 @@ class GenerateOutputs(PipelineStage):
     """
 
     name = "GenerateOutputs"
-    inputs = [("final_imcom_outputs_dir",Directory), ("imcom_config", JsonFile), ("manifest_file", TextFile)]
+    inputs = [("final_imcom_outputs_dir",Directory), ("imcom_config", JSONFile), ("manifest_file", TextFile)]
     outputs = [("final_output_dir",Directory), ("manifest_file", TextFile)]
     config_options = {} 
 
