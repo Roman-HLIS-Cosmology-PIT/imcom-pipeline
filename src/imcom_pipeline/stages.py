@@ -128,6 +128,9 @@ class ImcomInitial(PipelineStage):
         print(f" ImcomInitial Stage reading images from {imcom_inputs_dir}")
 
         # Perform IMCOM processing 1
+        # Add in config a flag to do production imcom or evil imcom (which Chris is going to set up)
+        # call pyimcom Block with config and this_sub which points to the sub-region (0->1599)
+        # but we have to figure out how to iterate over the blocks
 
         imcom_outputs_dir = self.get_output("imcom_outputs_dir")
         print(f"ImcomInitial Stage wrote IMCOM Iteration 1 processed images to {imcom_outputs_dir}")
