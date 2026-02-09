@@ -38,6 +38,7 @@ stages:
 inputs:
     images: ./path/to/science/images/
     manifest_file: ./path/to/science/images/list.txt
+    psf_model: psf_model.piff  # or .fits?
 
 # Overall configuration file 
 config: ./config.yaml
