@@ -1,9 +1,11 @@
 from scm_pipeline import PipelineStage
 from scm_pipeline.data_types import ASDFFile, TextFile, Directory, JSONFile, FitsFile # KL We need to add JSONFile
 from .utils import make_imcom_config 
-import sys
+import pyimcom.splitpsf.imsubtract as imsubtract
+import pyimcom.splitpsf.update_cube as update_cube
 from roman_hlis_l2_driver.destripe_interface.destripe import destripe_all_layers
 from roman_hlis_l2_driver.outliers.outlier_flagging import OutlierMap
+import os
 
 class ConfigConversion(PipelineStage):
     """
@@ -144,21 +146,20 @@ class ImSubtract(PipelineStage):
     """
 
     name = "imsubtract"
-    inputs = [("imcom_outputs_dir", Directory), ("imcom_config", JSONFile), ("manifest_file", TextFile)]
-    outputs = [("imcom_inputs_dir_2",Directory)]
+    inputs = [("imcom_config", JSONFile)]
+    outputs = []
     config_options = {} 
 
     def run(self):
         # Retrieve configuration:
         imcom_config = self.get_input("imcom_config")
         imcom_outputs_dir = self.get_input("imcom_outputs_dir")
-        manifest_file = self.get_input("manifest_file")
         print(f" ImSubtract Stage reading images from {imcom_outputs_dir}")
        
         # Perform imsubtract
-
-        imcom_inputs_dir_2 = self.get_output("imcom_inputs_dir_2")
-        print(f"Imsubtract wrote imsubtracted images to {imcom_inputs_dir_2}")
+        workers = os.cpu_count()
+        imsubtract.run_imsubtract_all(imcom_config, workers)  # Temp files save to inlayercache
+        update_cube.update(imcom_config)  # Update image cubes for next round of imcom
 
 class ImcomFinal(PipelineStage):
     """
