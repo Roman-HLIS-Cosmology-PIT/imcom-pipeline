@@ -1,3 +1,3 @@
-pyimcom @ git+https://github.com/Roman-HLIS-Cosmology-PIT/pyimcom.git
-roman_hlis_l2_driver @ git+https://github.com/Roman-HLIS-Cosmology-PIT/roman-hlis-l2-driver.git
-scm_pipeline @ git+https://github.com/Roman-HLIS-Cosmology-PIT/scm-pipeline.git
+pyimcom @ git+https://github.com/Roman-HLIS-Cosmology-PIT/pyimcom
+roman_hlis_l2_driver @ git+https://github.com/Roman-HLIS-Cosmology-PIT/roman-hlis-l2-driver
+scm_pipeline @ git+https://github.com/Roman-HLIS-Cosmology-PIT/scm-pipeline
