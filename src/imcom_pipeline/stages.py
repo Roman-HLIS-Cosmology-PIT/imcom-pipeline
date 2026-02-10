@@ -41,7 +41,7 @@ class Destripe(PipelineStage):
     def run(self):
         # Retrieve Setupp:
         path_to_images = self.get_input("image_dir")
-        manifest_file = self.get_input("manifest_file1")
+        manifest_file = self.get_input("manifest_file")
         imcom_config = self.get_input("imcom_config")
         print(f" Destripe Stage reading images from {path_to_images} according to manifest file {manifest_file}")
         print("IMCOM Config:", imcom_config)
@@ -203,7 +203,7 @@ class GenerateOutputs(PipelineStage):
         # Retrieve configuration:
         imcom_config = self.get_input("imcom_config")
         final_imcom_outputs_dir = self.get_input("final_imcom_outputs_dir")
-        manifest_file = self.get_input("manifest_file7")
+        manifest_file = self.get_input("manifest_file")
         print(f" GenerateOutputs Stage reading images from {final_imcom_outputs_dir}")
 
         # Compress the images
