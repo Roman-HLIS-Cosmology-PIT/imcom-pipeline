@@ -1,9 +1,7 @@
 from scm_pipeline import PipelineStage
 from scm_pipeline.data_types import ASDFFile, TextFile, Directory, JSONFile, FitsFile # KL We need to add JSONFile
 from .utils import make_imcom_config 
-import pyimcom.splitpsf.imsubtract as imsubtract
-import pyimcom.splitpsf.update_cube as update_cube
-import pyimcom.layer as layer
+import pyimcom
 from roman_hlis_l2_driver.destripe_interface.destripe import destripe_all_layers
 from roman_hlis_l2_driver.outliers.outlier_flagging import OutlierMap
 import os
@@ -103,7 +101,7 @@ class BuildLayers(PipelineStage):
 
         # Actually draw the layers
         workers = os.cpu_count()
-        layer.build_all_layers(imcom_config, image_dir, workers)
+        pyimcom.layer.build_all_layers(imcom_config, image_dir, workers)
 
         print(f"BuildLayers Stage wrote images with all IMCOM layers to the InLayerCache")
 
@@ -156,8 +154,8 @@ class ImSubtract(PipelineStage):
        
         # Perform imsubtract
         workers = os.cpu_count()
-        imsubtract.run_imsubtract_all(imcom_config, workers)  # Temp files save to inlayercache
-        update_cube.update(imcom_config)  # Update image cubes for next round of imcom
+        pyimcom.splitpsf.imsubtract.run_imsubtract_all(imcom_config, workers)  # Temp files save to inlayercache
+        pyimcom.splitpsf.update_cube.update(imcom_config)  # Update image cubes for next round of imcom
 
 class ImcomFinal(PipelineStage):
     """
