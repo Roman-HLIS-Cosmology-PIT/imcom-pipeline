@@ -3,6 +3,7 @@ from scm_pipeline.data_types import ASDFFile, TextFile, Directory, JSONFile, Fit
 from .utils import make_imcom_config 
 import pyimcom.splitpsf.imsubtract as imsubtract
 import pyimcom.splitpsf.update_cube as update_cube
+import pyimcom.layer as layer
 from roman_hlis_l2_driver.destripe_interface.destripe import destripe_all_layers
 from roman_hlis_l2_driver.outliers.outlier_flagging import OutlierMap
 import os
@@ -38,6 +39,7 @@ class Destripe(PipelineStage):
     inputs = [("manifest_file", TextFile), ("imcom_config", JSONFile)]
     outputs = [("destriped_dir", Directory)]  # KL Maybe we want to update the manifest file to exclude destriping anomaly images from coadds?
     # Config options -- these should match the config options for this stage in config.yaml. Format: {"name": dtype}
+    # actually maybe we should use the manifest file and output the destriped images into a mosaic directory?
     config_options = {}
 
     def run(self):
@@ -86,28 +88,24 @@ class PSFSplit(PipelineStage):
 class BuildLayers(PipelineStage):
     """
     Builds image layers for IMCOM processing.
-    To do: 
-    - Implement the actual layer building functionality
-    - Possibly combine with PSFSplit stage
     """
 
     name = "BuildLayers"
-    inputs = [("image_dir",Directory), ("imcom_config", JSONFile), ("manifest_file", TextFile)]
-    outputs = [("imcom_inputs_dir",Directory)]
+    inputs = [("image_dir",Directory), ("imcom_config", JSONFile)]
+    outputs = []
     config_options = {} # MG Unsure
 
     def run(self):
         # Retrieve configuration:
         imcom_config = self.get_input("imcom_config")
-       
         image_dir = self.get_input("image_dir")
-        manifest_file = self.get_input("manifest_file")
         print(f" BuildLayers Stage reading images from {image_dir}")
 
         # Actually draw the layers
+        workers = os.cpu_count()
+        layer.build_all_layers(imcom_config, image_dir, workers)
 
-        imcom_inputs_dir = self.get_output("imcom_inputs_dir")
-        print(f"BuildLayers Stage wrote images with all IMCOM layers to to {imcom_inputs_dir}")
+        print(f"BuildLayers Stage wrote images with all IMCOM layers to the InLayerCache")
 
 class ImcomInitial(PipelineStage):
     """
