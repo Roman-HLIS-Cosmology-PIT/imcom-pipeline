@@ -94,3 +94,27 @@ def make_imcom_config(config_yaml, outname):
     cfg = config.Config(cfg_file=json.dumps(config_dict))
     cfg.to_file(fname=outname)
 
+    return cfg
+
+
+def modify_config(cfg, options=None, fname=None):
+    """
+    This function takes a pyimcom config object and adds options to it from the other pipeline sections.
+
+    Parameters
+    ----------
+    cfg: pyimcom.config.Config
+        current config, to which we will add
+    options: dict
+        options to add to the config.
+        If None, we will use the default options from the config yaml file.
+    """
+
+    if options is not None:
+        for key, value in options.items():
+            setattr(cfg, key, value)
+    
+    if fname is not None:
+        cfg.to_file(fname=fname)
+
+    return cfg
