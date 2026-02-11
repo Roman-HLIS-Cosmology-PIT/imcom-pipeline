@@ -1,10 +1,11 @@
 from scm_pipeline import PipelineStage
 from scm_pipeline.data_types import ASDFFile, TextFile, Directory, JSONFile, FitsFile # KL We need to add JSONFile
-from .utils import make_imcom_config 
+from .utils import make_imcom_config, import_dask 
 import pyimcom
 from roman_hlis_l2_driver.destripe_interface.destripe import destripe_all_layers
 from roman_hlis_l2_driver.outliers.outlier_flagging import OutlierMap
 import os
+import numpy as np
 
 class ConfigConversion(PipelineStage):
     """
@@ -96,14 +97,16 @@ class BuildLayers(PipelineStage):
     def run(self):
         # Retrieve configuration:
         imcom_config = self.get_input("imcom_config")
+        cfg = pyimcom.config.Config(cfg_file=imcom_config)
         image_dir = self.get_input("image_dir")
         print(f" BuildLayers Stage reading images from {image_dir}")
 
         # Actually draw the layers
         workers = os.cpu_count()
-        pyimcom.layer.build_all_layers(imcom_config, image_dir, workers)
+        pyimcom.layer.build_all_layers(cfg, image_dir, workers)
 
         print(f"BuildLayers Stage wrote images with all IMCOM layers to the InLayerCache")
+
 
 class ImcomInitial(PipelineStage):
     """
@@ -112,33 +115,85 @@ class ImcomInitial(PipelineStage):
     - Implement the actual IMCOM processing functionality
     """
     name = "ImcomInitial"
-    inputs = [("imcom_inputs_dir",Directory), ("imcom_config", JSONFile), ("manifest_file", TextFile), ("psf_model", FitsFile)]
+    dask_parallel = True
+
+    inputs = [("imcom_inputs_dir",Directory), ("imcom_config", JSONFile), ("psf_model", FitsFile)]
+    # In pyimcom.coadd.Block the PSF model gets read in from the path given in the imcom_config. 
+    # Some options here are:
+        # 1) We just manually make sure the imcom_config has the right path to the PSF model
+        # 2) We read in the PSF model here as an input and append it into the imcom_config
+        # 3) In the ConfigConversion stage, we read in the PSF and any other inputs from other pipeline
+        #    sections and append them into the imcom config
+        
     outputs = [("imcom_outputs_dir",Directory)]
     config_options = {} 
 
+    def coadd_range(self, cfg, brange, last=False):
+        """
+        Helper function to coadd a range of blocks.
+
+        Parameters
+        ----------
+        cfg : pyimcom.config.Config
+            The IMCOM configuration.
+        brange : tuple
+            The range of blocks to coadd (start, end).
+        last : bool
+            Whether this is the last range to be coadded.
+
+        Returns
+        -------
+        None
+        """
+        start = brange[0]
+        end = brange[1] if not last else brange[1] + 1
+
+        for block in range(start, end):
+            pyimcom.coadd.Block(cfg=cfg, this_sub=block)
+
+        print(f"Completed coadding blocks {brange[0]} to {end}")
+
     def run(self):
-        # Retrieve configuration:
+        # Retrieve and setup configuration:
         imcom_config = self.get_input("imcom_config")
-        imcom_inputs_dir = self.get_input("imcom_inputs_dir")
-        manifest_file = self.get_input("manifest_file")
-        print(f" ImcomInitial Stage reading images from {imcom_inputs_dir}")
+        cfg = pyimcom.config.Config(cfg_file=imcom_config)
 
-        # Perform IMCOM processing 1
-        # Add in config a flag to do production imcom or evil imcom (which Chris is going to set up)
-        # call pyimcom Block with config and this_sub which points to the sub-region (0->1599)
-        # but we have to figure out how to iterate over the blocks
+        if not cfg.EVIL_IMCOM:
+            dask, _ = import_dask.import_dask()
 
-        imcom_outputs_dir = self.get_output("imcom_outputs_dir")
-        print(f"ImcomInitial Stage wrote IMCOM Iteration 1 processed images to {imcom_outputs_dir}")
+            block_dim = imcom_config["BLOCK"]
+            n_block = block_dim ** 2
+            # Block size (arcsec): output pixel scale X postage stamp pxl width  X N postage stamp width per block
+            block_size = imcom_config["OUTSIZE"][2] * imcom_config["OUTSIZE"][1] * imcom_config["OUTSIZE"][0]
+
+            mosaic_strips = np.ceil(636 / block_size) + 1
+            print(f"Breaking up the mosaic into {mosaic_strips} strips of blocks to run in parallel.")
+
+            block_ranges = [(i*block_size, (i+1)*block_size) for i in range(int(mosaic_strips))]
+            if block_ranges[-1][1] > n_block:
+                block_ranges[-1] = (block_ranges[-1][0], n_block)
+            print(f"Block ranges for processing: {block_ranges}")
+
+            # Run Imcom 1 in parallel over the block ranges using dask delayed
+            delay_results = []
+            for brange in block_ranges:
+                delay_results.append(dask.delayed(self.coadd_range)(cfg, brange, last=(brange[1] == n_block)))
+            
+            results = dask.compute(*delay_results)
+            print("Completed initial IMCOM processing for all blocks.")
+            
+        else:
+            # Placeholder for EVIL IMCOM processing
+            # We still need to add this flag to pyimcom config
+            # And then implement the actual process here
+            print("Running EVIL IMCOM - not yet implemented.")
+
+        print(f"ImcomInitial Stage wrote IMCOM Iteration 1 images to the InLayerCache")
 
 
 class ImSubtract(PipelineStage):
     """
     This stage runs imsubtract and updates the image cubes accordingly.
-    To do:
-    - Implement the actual imsubtract functionality
-    - Does the imcom input dir need to be different than the previous run of imcom?
-    - Does imsubtract input or output the PSF model at all?
     """
 
     name = "imsubtract"
@@ -148,12 +203,12 @@ class ImSubtract(PipelineStage):
 
     def run(self):
         # Retrieve configuration:
-        imcom_config = self.get_input("imcom_config")
+        imcom_config = self.get_input("imcom_config") 
         imcom_outputs_dir = self.get_input("imcom_outputs_dir")
         print(f" ImSubtract Stage reading images from {imcom_outputs_dir}")
        
-        # Perform imsubtract
         workers = os.cpu_count()
+
         pyimcom.splitpsf.imsubtract.run_imsubtract_all(imcom_config, workers)  # Temp files save to inlayercache
         pyimcom.splitpsf.update_cube.update(imcom_config)  # Update image cubes for next round of imcom
 
