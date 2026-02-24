@@ -111,12 +111,9 @@ class BuildLayers(PipelineStage):
 class ImcomInitial(PipelineStage):
     """
     This stage performs the initial IMCOM processing on the prepared image layers.
-    To do:
-    - Implement the actual IMCOM processing functionality
     """
     name = "ImcomInitial"
     dask_parallel = True
-
     inputs = [("imcom_inputs_dir",Directory), ("imcom_config", JSONFile), ("psf_model", FitsFile)]
     # In pyimcom.coadd.Block the PSF model gets read in from the path given in the imcom_config. 
     # Some options here are:
@@ -188,7 +185,7 @@ class ImcomInitial(PipelineStage):
             # And then implement the actual process here
             print("Running EVIL IMCOM - not yet implemented.")
 
-        print(f"ImcomInitial Stage wrote IMCOM Iteration 1 images to the InLayerCache")
+        print(f"ImcomInitial Stage wrote IMCOM Iteration 0 images to the InLayerCache")
 
 
 class ImSubtract(PipelineStage):
@@ -212,30 +209,22 @@ class ImSubtract(PipelineStage):
         pyimcom.splitpsf.imsubtract.run_imsubtract_all(imcom_config, workers)  # Temp files save to inlayercache
         pyimcom.splitpsf.update_cube.update(imcom_config)  # Update image cubes for next round of imcom
 
-class ImcomFinal(PipelineStage):
+class ImcomFinal(ImcomInitial):
     """
     This stage performs the second iteration of IMCOM processing.
-    To do:
-    - Implement the actual IMCOM processing functionality
-    - Do the outputs need to be in a different location than the previous run of imcom?
+    Inherits from ImcomInitial class
     """
 
     name = "ImcomFinal"
-    inputs = [("imcom_inputs_dir_2",Directory), ("imcom_config", JSONFile), ("manifest_file", TextFile), ("psf_model", FitsFile)]
+    dask_parallel = True
+    inputs = [("imcom_inputs_dir",Directory), ("imcom_config", JSONFile), ("psf_model", FitsFile)]
     outputs = [("final_imcom_outputs_dir",Directory)]
     config_options = {} 
 
-    def run(self):
-        # Retrieve configuration:
-        imcom_config = self.get_input("imcom_config")
-        imcom_inputs_dir_2 = self.get_input("imcom_inputs_dir_2")
-        manifest_file = self.get_input("manifest_file")
-        print(f" ImcomFinal Stage reading images from {imcom_inputs_dir_2}")
+    # No run method or anything here because it should inherit evenything it needs from ImcomInitial?
+    output_dir = self.get_output("final_imcom_outputs_dir")
+    print(f"ImcomFinal Stage wrote IMCOM Iteration 1 images to {output_dir}")
 
-        # Perform IMCOM processing 
-
-        final_imcom_outputs_dir = self.get_output("final_imcom_outputs_dir")
-        print(f"ImcomFinal Stage wrote final IMCOM processed images to {final_imcom_outputs_dir}")
 
 
 class GenerateOutputs(PipelineStage):
