@@ -158,7 +158,7 @@ class ImcomInitial(PipelineStage):
         imcom_config = self.get_input("imcom_config")
         cfg = pyimcom.config.Config(cfg_file=imcom_config)
 
-        if not cfg.EVIL_IMCOM:
+        if not (hasattr(cfg, “EVIL_IMCOM”) and cfg.EVIL_IMCOM)
             dask, _ = import_dask.import_dask()
 
             block_dim = imcom_config["BLOCK"]
