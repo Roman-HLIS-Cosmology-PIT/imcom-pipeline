@@ -222,8 +222,9 @@ class ImcomFinal(ImcomInitial):
     config_options = {} 
 
     # No run method or anything here because it should inherit evenything it needs from ImcomInitial?
-    output_dir = self.get_output("final_imcom_outputs_dir")
-    print(f"ImcomFinal Stage wrote IMCOM Iteration 1 images to {output_dir}")
+    def finish(self):
+        output_dir = self.get_output("final_imcom_outputs_dir")
+        print(f"ImcomFinal Stage wrote IMCOM Iteration 1 images to {output_dir}")
 
 
 
@@ -236,22 +237,52 @@ class GenerateOutputs(PipelineStage):
     """
 
     name = "GenerateOutputs"
-    inputs = [("final_imcom_outputs_dir",Directory), ("imcom_config", JSONFile), ("manifest_file", TextFile)]
-    outputs = [("final_output_dir",Directory)]
+    inputs = [("final_imcom_outputs_dir",Directory), ("imcom_config", JSONFile)]
+    outputs = []
     config_options = {} 
 
+
+    def get_layers_pars(self):
+        """
+        Retrieve configuration options for this stage and print them out.
+        Returns
+        -------
+        layers_pars, dict
+            The configuration options for the layers to be compressed / analyzed in this stage.
+        """
+        this_config = self.config['GenerateOutputs']
+        layers_pars = this_config['layers_pars']
+        print("GenerateOutputs layer config options:", layers_pars)
+
+        return layers_pars
+        
+    def run_compression(self, cfg, outstem, workers):
+
+        # Retrieve layer parameters dic 
+        layers_pars = self.get_layers_pars()
+
+        # Run compression on the final images
+        print(f"GenerateOutputs Stage starting compression of final output products with workers={workers}")
+        pyimcom.compress.compressutils.compress_all_blocks(cfg, layers_pars, workers=workers)
+        print(f"GenerateOutputs Stage compressed final output products to {outstem}")
+
+    def run_diagnostic(self, cfg):
+        print("GenerateOutputs Stage running diagnostics and generating PDF report")
+
+        example_file = cfg.outstem + "_00_00.cpr.fits.gz"
+        pyimcom.diagnostics.run.run_report(example_file)
+
     def run(self):
-        # Retrieve configuration:
+        # Retrieve imcom configuration:
         imcom_config = self.get_input("imcom_config")
-        final_imcom_outputs_dir = self.get_input("final_imcom_outputs_dir")
-        manifest_file = self.get_input("manifest_file")
-        print(f" GenerateOutputs Stage reading images from {final_imcom_outputs_dir}")
+        cfg = pyimcom.config.Config(cfg_file=imcom_config)
+        outstem = cfg.outstem
+        workers = os.cpu_count()
 
-        # Compress the images
-        # Write the report
+        self.run_compression(cfg, outstem, workers)
+        self.run_diagnostic(cfg)
 
-        final_output_dir = self.get_output("final_output_dir")
-        print(f"GenerateOutputs Stage wrote final output products to {final_output_dir}")
+
 
 if __name__ == "__main__":
     cls = PipelineStage.main()
