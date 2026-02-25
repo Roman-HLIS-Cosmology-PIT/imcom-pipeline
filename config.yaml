@@ -128,4 +128,17 @@ ImcomFinal:
     option: setting
 
 GenerateOutputs:
-    option: setting
+    layers_pars: 
+        gsstar14: 
+            {"VMIN": -1./64., "VMAX": 7./64., "BITKEEP": 20, "DIFF": True, "SOFTBIAS": -1}
+        nstar14:
+            {"VMIN": -1500, "VMAX": 10500, "BITKEEP": 20, "DIFF": True, "SOFTBIAS": -1}
+        gsext14:
+            {"VMIN": -1./64., "VMAX": 7./64., "BITKEEP": 20, "DIFF": True, "SOFTBIAS": -1}
+        1fnoise9:
+            {'VMIN': -32, 'VMAX': 32, 'BITKEEP': 14, 'DIFF': True, 'SOFTBIAS': -1}
+        whitenoise10:
+            {'VMIN': -8, 'VMAX': 8, 'BITKEEP': 14, 'DIFF': True, 'SOFTBIAS': -1}
+        noise:
+            {'VMIN': -0.125, 'VMAX': 0.125, 'BITKEEP': 14, 'DIFF': True, 'SOFTBIAS': -1}
+        
