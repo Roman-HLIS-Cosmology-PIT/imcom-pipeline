@@ -36,7 +36,7 @@ class Destripe(PipelineStage):
 
     name = "Destripe"
     inputs = [("manifest_file", TextFile), ("imcom_config", JSONFile)]
-    outputs = [("destriped_dir", Directory)]  # KL Maybe we want to update the manifest file to exclude destriping anomaly images from coadds?
+    outputs = []  # KL Maybe we want to update the manifest file to exclude destriping anomaly images from coadds?
     # Config options -- these should match the config options for this stage in config.yaml. Format: {"name": dtype}
     # actually maybe we should use the manifest file and output the destriped images into a mosaic directory?
     config_options = {}
@@ -54,9 +54,7 @@ class Destripe(PipelineStage):
         OutlierMap(imcom_config, max_workers=27, run_and_save=False)
 
         output_dir = imcom_config["DSOUT"][0] 
-        
-        path_to_images = self.get_output("destriped_dir")
-        print(f" Destripe Stage writing destriped images to to {path_to_images}")
+        print(f"Destripe Stage writing destriped images to to {output_dir}")
 
 
 class PSFSplit(PipelineStage):
@@ -75,13 +73,13 @@ class PSFSplit(PipelineStage):
     def run(self):
         # Retrieve configuration:
         imcom_config = self.get_input("imcom_config")
-       
-        destriped_dir = self.get_input("destriped_dir")
-        print(f"PSFSplit Stage reading from {destriped_dir}")
-        # Do the PSF Splitting
+        cfg = pyimcom.config.Config(cfg_file=imcom_config)
 
-        filename = self.get_output("image_dir")
-        print(f" PSFSplit Stage writing to {filename}")
+        # Do PSF Splitting
+        pyimcom.splitpsf.split_psf_all(cfg, workers=os.cpu_count())
+
+        psf_out = cfg.inlayercache + ".psf/"
+        print(f"PSFSplit Stage wrote to {psf_out}")
 
 
 class BuildLayers(PipelineStage):
@@ -102,8 +100,7 @@ class BuildLayers(PipelineStage):
         print(f" BuildLayers Stage reading images from {image_dir}")
 
         # Actually draw the layers
-        workers = os.cpu_count()
-        pyimcom.layer.build_all_layers(cfg, image_dir, workers)
+        pyimcom.layer.build_all_layers(cfg, image_dir, workers=os.cpu_count())
 
         print(f"BuildLayers Stage wrote images with all IMCOM layers to the InLayerCache")
 
@@ -176,7 +173,7 @@ class ImcomInitial(PipelineStage):
             for brange in block_ranges:
                 delay_results.append(dask.delayed(self.coadd_range)(cfg, brange, last=(brange[1] == n_block)))
             
-            results = dask.compute(*delay_results)
+            results = dask.compute(*delay_results, scheduler='processes')
             print("Completed initial IMCOM processing for all blocks.")
             
         else:
@@ -277,9 +274,8 @@ class GenerateOutputs(PipelineStage):
         imcom_config = self.get_input("imcom_config")
         cfg = pyimcom.config.Config(cfg_file=imcom_config)
         outstem = cfg.outstem
-        workers = os.cpu_count()
 
-        self.run_compression(cfg, outstem, workers)
+        self.run_compression(cfg, outstem, workers=os.cpu_count())
         self.run_diagnostic(cfg)
 
 
