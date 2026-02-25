@@ -1,6 +1,6 @@
 from scm_pipeline import PipelineStage
 from scm_pipeline.data_types import ASDFFile, TextFile, Directory, JSONFile, FitsFile # KL We need to add JSONFile
-from .utils import make_imcom_config, import_dask 
+from .utils import configutils, import_dask 
 import pyimcom
 from roman_hlis_l2_driver.destripe_interface.destripe import destripe_all_layers
 from roman_hlis_l2_driver.outliers.outlier_flagging import OutlierMap
@@ -22,10 +22,10 @@ class ConfigConversion(PipelineStage):
         my_config = self.config
         print("Here is my configuration :", my_config)
         
-        make_imcom_config(my_config['global'], "imcom_config.json")
+        configutils.make_imcom_config(my_config['global'], "imcom_config.json")
 
-        filename = self.get_output("imcom_config.json")
-        print(f"ConfigConversion Stage wrote imcom Config to {filename}")
+        pyimcom_config = self.get_output("imcom_config.json")
+        print(f"ConfigConversion Stage wrote imcom Config to {pyimcom_config}")
         
 
 class Destripe(PipelineStage):
